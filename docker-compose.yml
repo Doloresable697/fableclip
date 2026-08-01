@@ -1,0 +1,26 @@
+services:
+  fableclip:
+    build: .
+    container_name: fableclip
+    ports:
+      # 4325 is this drop's port in the repo's sequence. Override it if
+      # something else on your machine already has it: PORT=4326 docker compose up
+      - "${PORT:-4325}:4325"
+    # Your own .env, copied from .env.example. Marked optional so a machine
+    # configured entirely through real environment variables still starts.
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      IN_DOCKER: "1"
+      DB_PATH: /app/data/fableclip.db
+      MEDIA_DIR: /app/data/media
+      HF_HOME: /app/data/models
+    volumes:
+      # Source videos, rendered clips, the database and the Whisper weights.
+      # Delete this folder to reclaim the disk; nothing else lives here.
+      - ./data:/app/data
+    # Lets the container reach Ollama running on the host.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

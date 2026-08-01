@@ -1,0 +1,15 @@
+# Your model config — never commit this. .env.example is the one that ships.
+.env
+.env.local
+.env.*.local
+
+node_modules/
+.next/
+.next-verify/
+data/
+*.db
+next-env.d.ts
+*.tsbuildinfo
+
+.DS_Store
+*.log
